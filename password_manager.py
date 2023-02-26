@@ -44,7 +44,7 @@ def save_data():
         messagebox.showinfo(title="Ooops!", message="Не оставляйте поля пустыми")
     else:
         is_ok = messagebox.askokcancel(title="", message=f"Вы ввели {website}\n{password}\n{email}")
-
+    #json JavaScript Object Notation
     # только когда мы произвели удачный ввод
     # is_ok = True
     if is_ok:
