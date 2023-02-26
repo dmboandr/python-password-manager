@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import string
+import json
 
 # ------------------- PASSWORD GENERATOR ----------------#
 
@@ -39,20 +40,54 @@ def save_data():
     website = website_entry.get()
     email = email_entry.get()
     password = password_entry.get()
+    new_data = {
+        website: {
+            "email": email,
+            "password": password,
+        }
+    }
 
     if len(website) == 0 or len(password) == 0 or len(email) == 0:
         messagebox.showinfo(title="Ooops!", message="Не оставляйте поля пустыми")
     else:
-        is_ok = messagebox.askokcancel(title="", message=f"Вы ввели {website}\n{password}\n{email}")
-    #json JavaScript Object Notation
-    # только когда мы произвели удачный ввод
-    # is_ok = True
-    if is_ok:
-        with open("data.txt", "a") as data_file:
-            data_file.write(f"{website} | {email} | {password}\n")
-        website_entry.delete(0, END) # чтобы очистить поля для ввода
-        password_entry.delete(0, END)
+        #json.dump() - запись в json
+        #json.update() - обновить json
+        #json.load() - чтение из json
+        # сперва читаем содержимое файла
+        try:
+            with open("data.json", "r") as data_file:
+                data = json.load(data_file)
+        except FileNotFoundError:
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file)
+        else:
+            # содержимое файла обновляем
+            data.update(new_data)
+            # записываем обновленный файл
+            with open("data.json", "w") as data_file:
+                json.dump(data, data_file, indent=4)
+        finally:
+            website_entry.delete(0, END)  # чтобы очистить поля для ввода
+            password_entry.delete(0, END)
 
+# --------------------- FIND WEBSITE ----------------------------#
+
+def find_password():
+    website = website_entry.get()
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="Файл не создан")
+    else:
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email {email}\n"
+                                                   f"Password: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"Нет информации о "
+                                                       f"вебсайте {website}")
 # --------------------- GUI ----------------------------#
 
 window = Tk()
@@ -85,6 +120,8 @@ password_entry.grid(row=3, column=1)
 
 # Buttons
 
+search_button = Button(text="search", command=find_password)
+search_button.grid(row=1, column=2)
 generate_btn = Button(text="gen", width=7, command=generate_password)
 generate_btn.grid(row=3, column=2)
 add_btn = Button(text="add", width=35, command=save_data)
